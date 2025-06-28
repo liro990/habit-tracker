@@ -1,120 +1,113 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>습관 추적기</title>
+  <title>HT</title>
   <link rel="manifest" href="manifest.json" />
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f5f5f5;
-      color: #333;
-      margin: 0;
+      font-family: sans-serif;
       padding: 20px;
+      background-color: white;
+      color: black;
       transition: background-color 0.3s, color 0.3s;
     }
+
     .dark-mode {
-      background-color: #222;
-      color: #eee;
+      background-color: #121212;
+      color: #f0f0f0;
     }
-    #container {
-      max-width: 500px;
-      margin: auto;
-    }
-    input[type="text"] {
-      width: 70%;
-      padding: 10px;
-      font-size: 16px;
-    }
-    button {
-      padding: 10px;
-      font-size: 16px;
-      margin-left: 10px;
-      cursor: pointer;
-    }
-    ul {
+
+    #habitList li {
+      margin: 8px 0;
       list-style: none;
-      padding: 0;
     }
-    li {
-      padding: 8px 0;
-      border-bottom: 1px solid #ccc;
-    }
-    .completed {
-      text-decoration: line-through;
-      color: gray;
+
+    #habitList input[type="checkbox"] {
+      margin-right: 10px;
     }
   </style>
 </head>
+
 <body>
-  <div id="container">
-    <h1>습관 추적기</h1>
-    <p id="todayDate"></p>
-    <input type="text" id="habitInput" placeholder="습관 입력" />
-    <button onclick="addHabit()">추가</button>
-    <button id="darkModeToggle">🌙 다크모드</button>
-    <ul id="habitList"></ul>
-  </div>
+  <h1 id="dateDisplay"></h1>
+  <input type="text" id="habitInput" placeholder="습관을 입력하세요" />
+  <button onclick="addHabit()">추가</button>
+  <button id="darkModeToggle">다크모드 전환</button>
+  <ul id="habitList"></ul>
 
   <script>
     function getTodayKey() {
       return new Date().toLocaleDateString();
     }
 
-    function createHabitItem(text, checked = false) {
+    function updateDateDisplay() {
+      document.getElementById("dateDisplay").textContent = getTodayKey();
+    }
+
+    function createHabitItem(text) {
+      if (!text || text.trim() === "") return;
+
       const li = document.createElement("li");
+      li.className = "habit";
+
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
-      checkbox.checked = checked;
-      if (checked) li.classList.add("completed");
-
       checkbox.addEventListener("change", () => {
-        li.classList.toggle("completed");
-        saveHabits();
+        li.style.textDecoration = checkbox.checked ? "line-through" : "none";
       });
 
+      const span = document.createElement("span");
+      span.textContent = text;
+
       li.appendChild(checkbox);
-      li.append(" " + text);
+      li.appendChild(span);
+
       document.getElementById("habitList").appendChild(li);
+    }
+
+    function loadHabits() {
+      const todayKey = getTodayKey();
+      const stored = localStorage.getItem(todayKey);
+      if (stored) {
+        const habits = JSON.parse(stored);
+        for (let text of habits) {
+          if (text && text.trim() !== "") {
+            createHabitItem(text);
+          }
+        }
+      }
     }
 
     function addHabit() {
       const input = document.getElementById("habitInput");
       const text = input.value.trim();
-      if (text) {
-        createHabitItem(text);
-        saveHabits();
-        input.value = "";
-      }
-    }
+      if (!text) return;
 
-    function saveHabits() {
-      const key = getTodayKey();
-      const items = document.querySelectorAll("#habitList li");
-      const habits = [];
-      items.forEach(li => {
-        const text = li.textContent.trim();
-        const checked = li.querySelector("input").checked;
-        habits.push({ text, checked });
-      });
-      localStorage.setItem(key, JSON.stringify(habits));
-    }
+      createHabitItem(text);
 
-    function loadHabits() {
-      const key = getTodayKey();
-      document.getElementById("todayDate").textContent = "오늘 날짜: " + key;
-      const stored = JSON.parse(localStorage.getItem(key)) || [];
-      stored.forEach(item => createHabitItem(item.text, item.checked));
+      const todayKey = getTodayKey();
+      const stored = localStorage.getItem(todayKey);
+      const habits = stored ? JSON.parse(stored) : [];
+      habits.push(text);
+      localStorage.setItem(todayKey, JSON.stringify(habits));
+
+      input.value = "";
     }
 
     document.getElementById("darkModeToggle").addEventListener("click", () => {
       document.body.classList.toggle("dark-mode");
     });
 
-    window.onload = loadHabits;
+    window.onload = () => {
+      updateDateDisplay();
+      loadHabits();
+    };
   </script>
 </body>
+
 </html>
 
 
