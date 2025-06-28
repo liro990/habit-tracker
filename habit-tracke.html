@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>습관 추적 앱</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    #habitForm input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      font-size: 16px;
+    }
+    #habitForm button {
+      padding: 10px 15px;
+      font-size: 16px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #fff;
+      margin-top: 10px;
+      padding: 10px;
+      border-left: 5px solid #4CAF50;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .completed {
+      text-decoration: line-through;
+      color: gray;
+    }
+    .date {
+      font-size: 12px;
+      color: #888;
+    }
+    button.delete {
+      background: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>습관 추적기</h1>
+  <form id="habitForm">
+    <input type="text" id="habitInput" placeholder="오늘의 습관을 입력하세요...">
+    <button type="submit">추가</button>
+  </form>
+  <ul id="habitList"></ul>
+
+  <script>
+    const habitForm = document.getElementById('habitForm');
+    const habitInput = document.getElementById('habitInput');
+    const habitList = document.getElementById('habitList');
+
+    function loadHabits() {
+      const habits = JSON.parse(localStorage.getItem('habits')) || [];
+      habits.forEach(habit => addHabitToList(habit.text, habit.date, habit.completed));
+    }
+
+    function saveHabits() {
+      const habits = [];
+      habitList.querySelectorAll('li').forEach(li => {
+        habits.push({
+          text: li.querySelector('span').textContent,
+          date: li.querySelector('.date').textContent,
+          completed: li.querySelector('span').classList.contains('completed')
+        });
+      });
+      localStorage.setItem('habits', JSON.stringify(habits));
+    }
+
+    function addHabitToList(text, date, completed = false) {
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.textContent = text;
+      if (completed) span.classList.add('completed');
+
+      const dateSpan = document.createElement('div');
+      dateSpan.className = 'date';
+      dateSpan.textContent = date;
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = '삭제';
+      deleteBtn.className = 'delete';
+      deleteBtn.onclick = () => {
+        habitList.removeChild(li);
+        saveHabits();
+      };
+
+      span.onclick = () => {
+        span.classList.toggle('completed');
+        saveHabits();
+      };
+
+      const contentDiv = document.createElement('div');
+      contentDiv.appendChild(span);
+      contentDiv.appendChild(dateSpan);
+
+      li.appendChild(contentDiv);
+      li.appendChild(deleteBtn);
+      habitList.appendChild(li);
+    }
+
+    habitForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const habitText = habitInput.value.trim();
+      if (habitText !== '') {
+        const today = new Date().toLocaleDateString();
+        addHabitToList(habitText, today);
+        saveHabits();
+        habitInput.value = '';
+      }
+    });
+
+    loadHabits();
+  </script>
+</body>
+</html>
