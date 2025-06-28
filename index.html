@@ -1,129 +1,120 @@
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>습관 추적기</title>
-    <link rel="manifest" href="manifest.json" />
-    <style>
-      body {
-        font-family: 'Arial', sans-serif;
-        padding: 20px;
-        background-color: #f5f5f5;
-        transition: background-color 0.3s, color 0.3s;
-      }
-
-      .dark-mode {
-        background-color: #1e1e1e;
-        color: #fff;
-      }
-
-      input[type="text"] {
-        padding: 10px;
-        width: 70%;
-        font-size: 1rem;
-      }
-
-      button {
-        padding: 10px;
-        font-size: 1rem;
-        margin-left: 5px;
-      }
-
-      ul {
-        list-style: none;
-        padding: 0;
-      }
-
-      li.habit {
-        display: flex;
-        align-items: center;
-        margin-top: 10px;
-      }
-
-      li.habit span {
-        margin-left: 10px;
-      }
-
-      .hint {
-        font-size: 0.9rem;
-        color: #777;
-        margin-top: 10px;
-      }
-    </style>
-  </head>
-  <body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>습관 추적기</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .dark-mode {
+      background-color: #222;
+      color: #eee;
+    }
+    #container {
+      max-width: 500px;
+      margin: auto;
+    }
+    input[type="text"] {
+      width: 70%;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px;
+      font-size: 16px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 8px 0;
+      border-bottom: 1px solid #ccc;
+    }
+    .completed {
+      text-decoration: line-through;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
     <h1>습관 추적기</h1>
-
-    <button id="darkModeToggle">🌙 다크모드</button>
-
-    <input id="habitInput" type="text" placeholder="오늘의 습관을 입력하세요..." />
+    <p id="todayDate"></p>
+    <input type="text" id="habitInput" placeholder="습관 입력" />
     <button onclick="addHabit()">추가</button>
-
-    <p class="hint">예: “물 1리터 마시기”, “10분 스트레칭”</p>
-
+    <button id="darkModeToggle">🌙 다크모드</button>
     <ul id="habitList"></ul>
+  </div>
 
-    <script>
-      // 날짜 키 생성
-      function getTodayKey() {
-        return new Date().toLocaleDateString(); // 예: "2025. 6. 29"
-      }
+  <script>
+    function getTodayKey() {
+      return new Date().toLocaleDateString();
+    }
 
-      // 저장된 습관 불러오기
-      function loadHabits() {
-        const todayKey = getTodayKey();
-        const stored = localStorage.getItem(todayKey);
-        if (stored) {
-          const habits = JSON.parse(stored);
-          for (let text of habits) {
-            createHabitItem(text);
-          }
-        }
-      }
+    function createHabitItem(text, checked = false) {
+      const li = document.createElement("li");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = checked;
+      if (checked) li.classList.add("completed");
 
-      // 습관 항목 생성
-      function createHabitItem(text) {
-        const li = document.createElement("li");
-        li.className = "habit";
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-
-        const span = document.createElement("span");
-        span.textContent = text;
-
-        li.appendChild(checkbox);
-        li.appendChild(span);
-        document.getElementById("habitList").appendChild(li);
-      }
-
-      // 습관 추가 및 저장
-      function addHabit() {
-        const input = document.getElementById("habitInput");
-        const text = input.value.trim();
-        if (text !== "") {
-          createHabitItem(text);
-
-          const todayKey = getTodayKey();
-          const stored = localStorage.getItem(todayKey);
-          const habits = stored ? JSON.parse(stored) : [];
-          habits.push(text);
-          localStorage.setItem(todayKey, JSON.stringify(habits));
-
-          input.value = "";
-        }
-      }
-
-      // 다크모드 토글
-      const toggle = document.getElementById("darkModeToggle");
-      toggle.addEventListener("click", () => {
-        document.body.classList.toggle("dark-mode");
+      checkbox.addEventListener("change", () => {
+        li.classList.toggle("completed");
+        saveHabits();
       });
 
-      // 시작 시 오늘 습관 불러오기
-      window.onload = loadHabits;
-    </script>
-  </body>
+      li.appendChild(checkbox);
+      li.append(" " + text);
+      document.getElementById("habitList").appendChild(li);
+    }
+
+    function addHabit() {
+      const input = document.getElementById("habitInput");
+      const text = input.value.trim();
+      if (text) {
+        createHabitItem(text);
+        saveHabits();
+        input.value = "";
+      }
+    }
+
+    function saveHabits() {
+      const key = getTodayKey();
+      const items = document.querySelectorAll("#habitList li");
+      const habits = [];
+      items.forEach(li => {
+        const text = li.textContent.trim();
+        const checked = li.querySelector("input").checked;
+        habits.push({ text, checked });
+      });
+      localStorage.setItem(key, JSON.stringify(habits));
+    }
+
+    function loadHabits() {
+      const key = getTodayKey();
+      document.getElementById("todayDate").textContent = "오늘 날짜: " + key;
+      const stored = JSON.parse(localStorage.getItem(key)) || [];
+      stored.forEach(item => createHabitItem(item.text, item.checked));
+    }
+
+    document.getElementById("darkModeToggle").addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+    });
+
+    window.onload = loadHabits;
+  </script>
+</body>
 </html>
+
 
