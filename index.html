@@ -1,134 +1,66 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>습관 추적 앱</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>습관 추적기</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      padding: 20px;
-      max-width: 500px;
-      margin: auto;
+      font-family: 'Pretendard', sans-serif;
+      background: #f2f2f2;
+      text-align: center;
+      padding: 50px;
     }
     h1 {
-      text-align: center;
       color: #333;
     }
-    #habitForm input[type="text"] {
-      width: 80%;
+    input {
       padding: 10px;
-      font-size: 16px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
-    #habitForm button {
-      padding: 10px 15px;
-      font-size: 16px;
+    button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      border: none;
+      background-color: #5c7cfa;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
     }
     ul {
       list-style: none;
       padding: 0;
+      margin-top: 30px;
     }
     li {
-      background: #fff;
-      margin-top: 10px;
+      background: white;
+      margin-bottom: 10px;
       padding: 10px;
-      border-left: 5px solid #4CAF50;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .completed {
-      text-decoration: line-through;
-      color: gray;
-    }
-    .date {
-      font-size: 12px;
-      color: #888;
-    }
-    button.delete {
-      background: red;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      cursor: pointer;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
   <h1>습관 추적기</h1>
-  <form id="habitForm">
-    <input type="text" id="habitInput" placeholder="오늘의 습관을 입력하세요...">
-    <button type="submit">추가</button>
-  </form>
+  <input type="text" id="habitInput" placeholder="오늘의 습관을 입력하세요..." />
+  <button onclick="addHabit()">추가</button>
   <ul id="habitList"></ul>
 
   <script>
-    const habitForm = document.getElementById('habitForm');
-    const habitInput = document.getElementById('habitInput');
-    const habitList = document.getElementById('habitList');
+    function addHabit() {
+      const input = document.getElementById('habitInput');
+      const habit = input.value.trim();
+      if (habit === '') return;
 
-    function loadHabits() {
-      const habits = JSON.parse(localStorage.getItem('habits')) || [];
-      habits.forEach(habit => addHabitToList(habit.text, habit.date, habit.completed));
-    }
-
-    function saveHabits() {
-      const habits = [];
-      habitList.querySelectorAll('li').forEach(li => {
-        habits.push({
-          text: li.querySelector('span').textContent,
-          date: li.querySelector('.date').textContent,
-          completed: li.querySelector('span').classList.contains('completed')
-        });
-      });
-      localStorage.setItem('habits', JSON.stringify(habits));
-    }
-
-    function addHabitToList(text, date, completed = false) {
       const li = document.createElement('li');
-      const span = document.createElement('span');
-      span.textContent = text;
-      if (completed) span.classList.add('completed');
-
-      const dateSpan = document.createElement('div');
-      dateSpan.className = 'date';
-      dateSpan.textContent = date;
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.textContent = '삭제';
-      deleteBtn.className = 'delete';
-      deleteBtn.onclick = () => {
-        habitList.removeChild(li);
-        saveHabits();
-      };
-
-      span.onclick = () => {
-        span.classList.toggle('completed');
-        saveHabits();
-      };
-
-      const contentDiv = document.createElement('div');
-      contentDiv.appendChild(span);
-      contentDiv.appendChild(dateSpan);
-
-      li.appendChild(contentDiv);
-      li.appendChild(deleteBtn);
-      habitList.appendChild(li);
+      li.textContent = habit;
+      document.getElementById('habitList').appendChild(li);
+      input.value = '';
     }
-
-    habitForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const habitText = habitInput.value.trim();
-      if (habitText !== '') {
-        const today = new Date().toLocaleDateString();
-        addHabitToList(habitText, today);
-        saveHabits();
-        habitInput.value = '';
-      }
-    });
-
-    loadHabits();
   </script>
 </body>
 </html>
