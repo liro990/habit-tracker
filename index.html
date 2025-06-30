@@ -1,111 +1,191 @@
+
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HT</title>
-  <link rel="manifest" href="manifest.json" />
+  <title>리오의 습관 추적기</title>
   <style>
     body {
-      font-family: sans-serif;
-      padding: 20px;
-      background-color: white;
-      color: black;
+      font-family: 'Arial', sans-serif;
+      background-color: #fefefe;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
       transition: background-color 0.3s, color 0.3s;
     }
 
+    header, main, footer, aside {
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    header {
+      background-color: #f0f8ff;
+      text-align: center;
+      border-bottom: 1px solid #ccc;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 5px;
+    }
+
+    #date {
+      font-size: 0.95em;
+      color: #555;
+    }
+
+    #habit-input {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    li {
+      background: #f9f9f9;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-left: 5px solid #4CAF50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    li.completed span {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    .hint {
+      font-style: italic;
+      font-size: 0.9em;
+      color: #777;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.8em;
+      color: #aaa;
+      margin-top: 30px;
+    }
+
+    /* 다크모드 스타일 */
     .dark-mode {
       background-color: #121212;
       color: #f0f0f0;
     }
 
-    #habitList li {
-      margin: 8px 0;
-      list-style: none;
+    .dark-mode input,
+    .dark-mode button,
+    .dark-mode li {
+      background-color: #1e1e1e;
+      color: #ffffff;
+      border-color: #444;
     }
 
-    #habitList input[type="checkbox"] {
-      margin-right: 10px;
+    .dark-mode li {
+      border-left: 5px solid #90ee90;
+    }
+
+    .dark-mode footer {
+      color: #666;
     }
   </style>
 </head>
-
 <body>
-  <h1 id="dateDisplay"></h1>
-  <input type="text" id="habitInput" placeholder="습관을 입력하세요" />
-  <button onclick="addHabit()">추가</button>
-  <button id="darkModeToggle">다크모드 전환</button>
-  <ul id="habitList"></ul>
+  <header>
+    <h1>습관 추적기</h1>
+    <p id="date">오늘 날짜: </p>
+  </header>
+
+  <main>
+    <section id="habit-input">
+      <input type="text" id="habitInput" placeholder="오늘의 습관을 입력하세요" />
+      <button onclick="addHabit()">추가</button>
+      <button onclick="toggleDarkMode()">다크모드 전환</button>
+    </section>
+
+    <section id="habit-list">
+      <ul id="habitList">
+        <!-- 습관 항목이 여기에 들어옴 -->
+      </ul>
+    </section>
+  </main>
+
+  <aside>
+    <p class="hint">🌱 오늘도 작은 습관을 실천해봐요!</p>
+  </aside>
+
+  <footer>
+    <p>ⓒ 2025 리오의 습관 앱</p>
+  </footer>
 
   <script>
-    function getTodayKey() {
-      return new Date().toLocaleDateString();
-    }
-
-    function updateDateDisplay() {
-      document.getElementById("dateDisplay").textContent = getTodayKey();
-    }
-
-    function createHabitItem(text) {
-      if (!text || text.trim() === "") return;
-
-      const li = document.createElement("li");
-      li.className = "habit";
-
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.addEventListener("change", () => {
-        li.style.textDecoration = checkbox.checked ? "line-through" : "none";
+    function getToday() {
+      const today = new Date();
+      return today.toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       });
-
-      const span = document.createElement("span");
-      span.textContent = text;
-
-      li.appendChild(checkbox);
-      li.appendChild(span);
-
-      document.getElementById("habitList").appendChild(li);
     }
 
-    function loadHabits() {
-      const todayKey = getTodayKey();
-      const stored = localStorage.getItem(todayKey);
-      if (stored) {
-        const habits = JSON.parse(stored);
-        for (let text of habits) {
-          if (text && text.trim() !== "") {
-            createHabitItem(text);
-          }
-        }
-      }
-    }
+    document.getElementById("date").textContent = "오늘 날짜: " + getToday();
 
     function addHabit() {
       const input = document.getElementById("habitInput");
       const text = input.value.trim();
-      if (!text) return;
+      if (text === "") return;
 
-      createHabitItem(text);
+      const li = document.createElement("li");
+      const span = document.createElement("span");
+      span.textContent = text;
+      span.onclick = () => {
+        li.classList.toggle("completed");
+      };
 
-      const todayKey = getTodayKey();
-      const stored = localStorage.getItem(todayKey);
-      const habits = stored ? JSON.parse(stored) : [];
-      habits.push(text);
-      localStorage.setItem(todayKey, JSON.stringify(habits));
-
+      li.appendChild(span);
+      document.getElementById("habitList").appendChild(li);
       input.value = "";
     }
 
-    document.getElementById("darkModeToggle").addEventListener("click", () => {
+    function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
-    });
-
-    window.onload = () => {
-      updateDateDisplay();
-      loadHabits();
-    };
+    }
   </script>
 </body>
-
 </html>
